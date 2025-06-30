@@ -52,3 +52,31 @@ class HostelRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
         return instance
     
+
+class PremiumHostelListView(generics.ListAPIView):
+    serializer_class = HostelSerializer
+
+    def get_queryset(self):
+        queryset = Hostel.objects.filter(is_premium=True)
+
+        # Query params
+        search = self.request.query_params.get("search", "").strip().lower()
+        sort_by = self.request.query_params.get("sort", "newest")
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+            )
+
+        if sort_by == "newest":
+            queryset = queryset.order_by("-created_at")
+        elif sort_by == "oldest":
+            queryset = queryset.order_by("created_at")
+        elif sort_by == "priceLow":
+            queryset = queryset.order_by("price")
+        elif sort_by == "priceHigh":
+            queryset = queryset.order_by("-price")
+        elif sort_by == "rating":
+            queryset = queryset.order_by("-rating")
+
+        return queryset
